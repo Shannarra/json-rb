@@ -1,0 +1,26 @@
+{
+    "foo": {
+        "grades": [
+            2,
+            3,
+            4,
+            5,
+            6,
+						{
+								"system": {
+										"name": "Eastern European",
+										"count": 5,
+										"max": 6,
+										"min": 2,
+								}
+						}
+        ],
+        "data": {
+            "bar": "baz",
+            "weirdnum": -12000000,
+            "buz": true,
+            "gaz": false,
+            "user_data": null
+        }
+    }
+}

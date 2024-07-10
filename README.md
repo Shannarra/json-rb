@@ -1,4 +1,4 @@
-# JSON-RB
+# JSON-RB [![Ruby CI](https://github.com/Shannarra/json-rb/actions/workflows/ruby.yml/badge.svg)](https://github.com/Shannarra/json-rb/actions/workflows/ruby.yml)
 
 JSON-RB is a simple and effective JSON parser written from scratch in Ruby.
 
@@ -8,8 +8,9 @@ JSON-RB is a simple and effective JSON parser written from scratch in Ruby.
 - [ ] Extended customizability (*In progress*)
     Support for custom parser configurations will be added.
     Yes, this means that you can parse a custom-styled JSON-based file format with this if that's your heart's desire.
-- [ ] Proven functionality
+- [x] Proven functionality
     Functionality proven by a number of tests and integrated CI/CD functionality.
+    Tested in Ruby versions 3.1, 3.0 and 2.7 in [the actions](https://github.com/Shannarra/json-rb/actions) pipeline.
 
 ## Why?
 I was bored and wanted to test my recursion skills. 

@@ -19,6 +19,8 @@ class Token
   end
 
   def ==(other)
+    return value == other unless other.is_a? Token
+
     type == other.type && value == other.value
   end
 end

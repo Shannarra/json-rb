@@ -10,34 +10,12 @@ class JRB
 end
 
 def main
-  value = JRB.parse! '
-{
-    "foo": {
-        "grades": [
-            2,
-            3,
-            4,
-            5,
-            6,
-            {
-                "asd": "asd"
-            }
-        ],
-        "data": {
-            "bar": "baz",
-            "weirdnum": -12e9,
-            "buz": true,
-            "gaz": false,
-            "user_data": null
-        }
-    }
-}
-'
+  value = JRB.parse! '{"items":[1,6.9,-1200000,"Hello World!",[1,2,3],{"name":"John Doe"}]}'
   puts value
   puts value.dig('foo', 'data', 'weirdnum')
 
-  value = JRB.parse! File.read('./tests/medical.json')
-  puts value['imaging'][1]['location']
+  value = JRB.parse! File.read('./tests/very_nested.json')
+  puts value
 end
 
 main

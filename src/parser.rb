@@ -22,7 +22,7 @@ class Parser
     when JSON[:SYMBOLS][:LEFTBRACKET] then parse_array
     when JSON[:SYMBOLS][:LEFTBRACE] then parse_object
     else
-      token
+      unwrap! token
     end
   end
 
@@ -66,6 +66,8 @@ class Parser
         advance
         return object
       elsif current != JSON[:SYMBOLS][:COMMA]
+        return object unless current
+
         error! "Expected a comma after a key-value pair in object, got an \"#{unwrap! current}\""
       end
 

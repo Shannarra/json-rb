@@ -1,62 +1,62 @@
 {
-    "items": {
-        "item": [
-            {
-                "id": "0001",
-                "type": "donut",
-                "name": "Cake",
-                "ppu": 0.55,
-                "batters": {
-                    "batter": [
+    "problems": [
+        {
+            "Diabetes": [
+                {
+                    "medications": [
                         {
-                            "id": "1001",
-                            "type": "Regular"
-                        },
+                            "medicationsClasses": [
+                                {
+                                    "className": [
+                                        {
+                                            "associatedDrug": [
+                                                {
+                                                    "name": "asprin",
+                                                    "dose": "",
+                                                    "strength": "500 mg"
+                                                }
+                                            ],
+                                            "associatedDrug#2": [
+                                                {
+                                                    "name": "somethingElse",
+                                                    "dose": "",
+                                                    "strength": "500 mg"
+                                                }
+                                            ]
+                                        }
+                                    ],
+                                    "className2": [
+                                        {
+                                            "associatedDrug": [
+                                                {
+                                                    "name": "asprin",
+                                                    "dose": "",
+                                                    "strength": "500 mg"
+                                                }
+                                            ],
+                                            "associatedDrug#2": [
+                                                {
+                                                    "name": "somethingElse",
+                                                    "dose": "",
+                                                    "strength": "500 mg"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "labs": [
                         {
-                            "id": "1002",
-                            "type": "Chocolate"
-                        },
-                        {
-                            "id": "1003",
-                            "type": "Blueberry"
-                        },
-                        {
-                            "id": "1004",
-                            "type": "Devil's Food"
+                            "missing_field": "missing_value"
                         }
                     ]
-                },
-                "topping": [
-                    {
-                        "id": "5001",
-                        "type": "None"
-                    },
-                    {
-                        "id": "5002",
-                        "type": "Glazed"
-                    },
-                    {
-                        "id": "5005",
-                        "type": "Sugar"
-                    },
-                    {
-                        "id": "5007",
-                        "type": "Powdered Sugar"
-                    },
-                    {
-                        "id": "5006",
-                        "type": "Chocolate with Sprinkles"
-                    },
-                    {
-                        "id": "5003",
-                        "type": "Chocolate"
-                    },
-                    {
-                        "id": "5004",
-                        "type": "Maple"
-                    }
-                ]
-            }
-        ]
-    }
+                }
+            ],
+            "Asthma": [
+                {}
+            ]
+        }
+    ]
 }

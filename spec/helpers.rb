@@ -1,3 +1,5 @@
+require 'pry'
+
 Dir.children('src').each do |file|
   require_relative "../src/#{file}"
 end

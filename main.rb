@@ -1,7 +1,7 @@
 require 'pry'
 
-require_relative 'src/lexer'
 require_relative 'src/parser'
+require_relative 'src/lexer'
 
 class JRB
   def self.parse!(text)

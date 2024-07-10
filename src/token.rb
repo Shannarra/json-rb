@@ -17,4 +17,8 @@ class Token
   def to_s
     "Token<[#{type}] = #{value}>"
   end
+
+  def ==(other)
+    type == other.type && value == other.value
+  end
 end

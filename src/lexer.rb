@@ -64,7 +64,7 @@ class Lexer
 
     str = current
     advance
-    return (str += current) if current == JSON[:SYMBOLS][:QUOTE]
+    return Token.new(TokenType::String, (str += current)) if current == JSON[:SYMBOLS][:QUOTE]
 
     loop do
       if current

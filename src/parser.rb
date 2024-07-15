@@ -68,6 +68,8 @@ class Parser
       elsif current != JSON[:SYMBOLS][:COMMA]
         return object unless current
 
+        next if current.string_token?
+
         error! "Expected a comma after a key-value pair in object, got an \"#{unwrap! current}\""
       end
 
@@ -80,10 +82,7 @@ class Parser
   def parse_array
     array = []
 
-    if current == JSON[:SYMBOLS][:RIGHTBRACKET]
-      advance
-      return array
-    end
+    return array if current == JSON[:SYMBOLS][:RIGHTBRACKET]
 
     while current
       item = parse(offset: @ip)

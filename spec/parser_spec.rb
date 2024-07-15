@@ -107,7 +107,7 @@ describe Parser do
       end
 
       it 'mixed bag' do
-        text = '{"items":[1,6.9,-12e5,"Hello World!",{"name":"John Doe"}, [2,3,4,5,6]}'
+        text = '{"items":[1,6.9,-12e5,"Hello World!",{"name":"John Doe"}, [2,3,4,5,6]}}'
 
         result = parse! text
 
@@ -188,6 +188,105 @@ describe Parser do
         expect(drug['name']).to eq '"asprin"'
         expect(drug['dose']).to eq '""'
         expect(drug['strength']).to eq '"500 mg"'
+      end
+    end
+
+    context 'for tricky before-and-after array values' do
+      let(:text) do
+        '{
+             "hello": "world",
+             "items": [
+                 1,
+                 6.9,
+                 -1.2e6,
+                 "Hello World!",
+                 null,
+                 false,
+                 true,
+                 [
+                     1,
+                     2,
+                     3
+                 ],
+                 {
+                     "name": "John Doe",
+                     "false": true,
+                     "true": false,
+                     "value": null
+                 }
+             ],
+             "foo": {
+                 "data": {
+                     "weirdnum": -4.20e69
+                 },
+                 "asd": "ASD"
+             }
+         }'
+      end
+
+      before(:each) do
+        @result = parse! text
+
+        @items_result = [
+          1,
+          6.9,
+          -1_200_000,
+          '"Hello World!"',
+          nil,
+          false,
+          true,
+          [
+            1,
+            2,
+            3
+          ],
+          {
+            'name' => '"John Doe"',
+            'false' => true,
+            'true' => false,
+            'value' => nil
+          }
+        ]
+      end
+
+      it 'handles values before array' do
+        expect(@result['hello']).to eq '"world"'
+      end
+
+      context 'handles the array correctly' do
+        before(:each) do
+          @arr = @result['items']
+        end
+
+        it 'and has correct length' do
+          expect(@arr.length).to eq @items_result.length
+        end
+
+        it 'and has matching values for simple values' do
+          expect(@arr[..-2]).to match_array @items_result[..-2]
+        end
+
+        it 'and has matching values for nested arrays' do
+          expect(@arr[-3..-2]).to match_array @items_result[-3..-2]
+        end
+
+        it 'and has matching values for nested objects' do
+          expect(@arr[-1]).to match @items_result[-1]
+        end
+      end
+
+      context 'handles values after array' do
+        before(:each) do
+          @obj = @result['foo']
+        end
+
+        it 'and nested objects correctly' do
+          expect(@obj.dig('data', 'weirdnum')).to eq(-4.20e69) # nice
+        end
+
+        it 'and object\'s values correctly' do
+          expect(@obj['asd']).to eq '"ASD"'
+        end
       end
     end
   end

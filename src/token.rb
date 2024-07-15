@@ -23,4 +23,8 @@ class Token
 
     type == other.type && value == other.value
   end
+
+  TokenType.constants.map { |type| type.to_s.downcase }.each do |type|
+    define_method("#{type}_token?") { is_a?(Token) && self.type == type.capitalize }
+  end
 end

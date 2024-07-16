@@ -16,4 +16,4 @@ JSON-RB is a simple and effective JSON parser written from scratch in Ruby.
 I was bored and wanted to test my recursion skills. 
 
 ## How? 
-To be written.
+I have written an extensive document on how to build a basic JSON parser in the [building a parser](https://github.com/Shannarra/json-rb/blob/master/docs/building_a_parser.md) document.

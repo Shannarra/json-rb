@@ -34,7 +34,8 @@ def main
         "data": {
             "weirdnum": null
         },
-        "asd": "ASD"
+        "asd": "ASD",
+        "items": []
     }
 }'
   puts value

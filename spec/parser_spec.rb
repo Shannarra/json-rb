@@ -107,7 +107,7 @@ describe Parser do
       end
 
       it 'mixed bag' do
-        text = '{"items":[1,6.9,-12e5,"Hello World!",{"name":"John Doe"}, [2,3,4,5,6]}}'
+        text = '{"items":[1,6.9,-12e5,"Hello World!",{"name":"John Doe"}, [2,3,4,5,6]]}}'
 
         result = parse! text
 
@@ -226,6 +226,7 @@ describe Parser do
 
       before(:each) do
         @result = parse! text
+        
 
         @items_result = [
           1,

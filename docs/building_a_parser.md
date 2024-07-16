@@ -178,7 +178,7 @@ main
 
 Running our program, you will see that for now it is still a glorified "Hello world!", but that will soon change.
 
-1. Setting the class up
+1. Setting the class up  
 We'll continue working on our `lexer.rb` class, adding a simple constructor and a new instance method named `lex`, as well as several attributes for parsing the contents:
 
 ```ruby
@@ -390,10 +390,16 @@ class Token
 
     type == other.type && value == other.value
   end
+  
+  TokenType.constants.map { |type| type.to_s.downcase }.each do |type|
+    define_method("#{type}_token?") { is_a?(Token) && self.type == type.capitalize }
+  end
 end
 ```
 
 It contains an enumerator called `TokenType` that contains all possible types a token can have, as well as a class, defining the notion of a `Token`. A `Token` is a wrapper around a pair of two values - a `TokenType` called "type", and a JSON value, called just "value" for short. It also defines a custom `to_s` method (similar to `toString()` in JavaScript) and a custom equality operator overload.
+
+Moreover, the `Token` class implicitly defines a `X_token?` boolean instance method, where X is one of the possible `TokenType`s defined at the top of the file. This is completely extendable for any value in the `TokenType` enum, and is useful to check if a variable is a `Token` __*AND*__ is of certain type (e.g. to check if the current token is a string you can use the `current.string_token?` method). 
 
 However, this does __NOT__ solve our issue. Reason is that our `Lexer` class and file do not know what a `Token` is yet. To fix that we can add a `require_relative` directive at the top of our `lexer.rb` file, just below the one for `util`. 
 Adding this means that the top of your `lexer.rb` file should look something like this:
@@ -613,3 +619,445 @@ Token<[String] = "Hello World!">
 > (list has been shortened for brevity)
 
 You might see that the symbol tokens are just raw characters and not wrapped in `Token`s. There is a very clear reason for that behaviour that will become apparent when we talk about parsing in the next section.
+
+
+## Parsing - or, converting the [Token](../src/token.rb)s to something meaningful
+
+Now, we can generate a linear list of `Token`s, cool, eh? Nah, not really.
+
+Neither the basic `Ruby` language, nor most programmers know how to use those, and they don't give much information on what is nested where, nor are they very descriprive with regards to the nested information within. Thus, we would want to make something useful out of them, and as such we need to go to the next and (almost) final step of our process - Parsing. 
+
+Parsing is the process of converting formatted text into a data structure. A data structure type can be any suitable representation of the information engraved in the source text ([The Mighty Programmer](https://themightyprogrammer.dev/article/parsing)). For our purposes, we would use a [Hash](https://ruby-doc.org/core-2.5.1/Hash.html) data structure, as they perfectly represent the dictionary-based layout of JSON in a neat format to both read and write as programmers. So, how do we do it?
+
+0. First part, obviously, is a setup. 
+We'd want to store the parser somewhere, hence we can create a new file in our `src` folder. Let's call it `parser.rb`. Now, if we take a look at our directory tree we can see the following:
+
+```console
+$ tree .
+.
+├── Gemfile
+├── main.rb
+└── src
+    ├── lexer.rb
+    ├── parser.rb
+    ├── token.rb
+    └── util.rb
+
+1 directory, 6 files
+```
+
+1. Setting the class up  
+Perfect. Now, open the `parser.rb` file and add the following basic content to it:
+```ruby
+class Parser
+  attr_accessor :tokens, :ip
+
+  def initialize(tokens, offset)
+    @tokens = tokens
+    @ip = offset
+  end
+
+  def self.parse!(tokens, is_root: false, offset: 0)
+    parser = Parser.new(tokens, offset)
+    parser.parse(is_root: is_root)
+  end
+
+  def parse(is_root: false, offset: 0)
+    puts tokens
+  end
+end
+```
+
+Basically, the static `parse!` method creates a new instance of the `Parser` class and setups the default variables with default values. Those variables are:
+- __*tokens*__: A container, or a list of all of the tokens that our `Parser` wiil parse, given by the `parse!` method call as a parameter.
+- __*ip*__: Short for `instruction pointer`, not Internet Protocol. A pointer to the current element we are looking at in the __*tokens*__.
+
+The `parse` and `parse!` methods have a couple of *optional* parameters called `is_root` and `offset`. 
+- __*is_root*__: Dictates wether the parser should treat the current list of tokens parsed to it as the root of a JSON file/object.
+- __*offset*__: Represents an offset from the start of the `tokens` parameter. Used to offset the `ip` in recursive calls during parsing.
+
+In order to test that our parser successfully prints out all our tokens, we would need to modify our `main.rb` file:
+```ruby
+require_relative 'src/lexer'
+require_relative 'src/parser'
+
+class JRB
+  def self.parse!(text)
+    Parser.parse! Lexer.lex! text
+  end
+end
+
+def main
+  puts JRB.parse! '{"name":"John Doe", "false": true, "true": false, "value": null}'
+end
+
+main
+```
+
+Notice that we've added a new `require_relative` at the second line of the file, as well as a new `JRB` class. It will be used as a shorthand to lexing and parsing the text content provided for this tutorial's sake, but can also be used to add abstractions and/or configurations if needed.
+
+Running our program now, we will get the same result as at the end of the previous section:
+```console
+$ ruby main.rb 
+{
+Token<[String] = "items">
+:
+[
+Token<[Number] = 1>
+,
+Token<[Number] = 6.9>
+,
+Token<[Number] = -1200000>
+,
+Token<[String] = "Hello World!">
+...
+```
+
+2. Parsing objects
+
+Since we already have the basic framework, of walking an array of items, we can modify the `parse` method in our `parser.rb` a bit:
+```ruby 
+  def parse(is_root: false, offset: 0)
+    @ip = offset
+    token = current
+
+    error! 'Expected root to be an object!' if is_root && token != JSON[:SYMBOLS][:LEFTBRACE]
+
+    advance
+    case token
+    when JSON[:SYMBOLS][:LEFTBRACE] then parse_object
+    else
+      unwrap! token
+    end
+  end
+```
+It is fairly simple, we add an error check if the `is_root` check is activated - we error __unless__ the first of our tokens is a `LEFTBRACE` token (a `{`).
+Then we advance to the next token, check if the token is a `LEFTBRACE` (a `{`), and if so - parse the following tokens as an object. Else, we return the current token's unwrapped value. 
+
+Parsing the tokens as an object requires us to define a new `private` method called `parse_object`:
+
+```ruby
+  private
+
+  def parse_object
+    object = {}
+
+    if current == JSON[:SYMBOLS][:RIGHTBRACE]
+      advance
+      return object
+    end
+
+    while current
+      key = current
+
+      unless key.string_token?
+        return object if key == JSON[:SYMBOLS][:RIGHTBRACE]
+
+        error! "Expected a string key in object, got \"#{key}\" at #{ip}"
+      end
+
+      advance
+
+      error! "Expected a colon separator character after key in object, got \"#{current}\"" unless current == JSON[:SYMBOLS][:COLON]
+
+      advance
+      value = parse(offset: @ip)
+
+      object[key.value.tr('"', '')] = unwrap!(value)
+
+      if current == JSON[:SYMBOLS][:RIGHTBRACE]
+        advance
+        return object
+      elsif current != JSON[:SYMBOLS][:COMMA]
+        return object unless current
+
+        next if current.string_token?
+
+        error! "Expected a comma after a key-value pair in object, got an \"#{unwrap! current}\""
+      end
+
+      advance
+    end
+
+    error! "Expected end-of-object symbol #{JSON[:SYMBOLS][:RIGHTBRACE]}"
+  end
+```
+
+Since JSON objects are the literal backbone of a JSON file, it only makes sense that we start parsing them first. 
+
+#### This is confusing and I wanna go home
+The author knows that this function looks *scary* when you first see it, but in reality it's not \*that\* hard to understand. 
+
+If you are interested in what happends in this function and how does it work, expand the following section:
+
+<details>
+	<summary> 
+        <h4>How does parsing objects work?</h4>
+    </summary>
+0. We define a simple variable called `object`, consisting of, you guessed it, an empty object (`Hash`). 
+If the next token is a closing brace (`}`) - we return the empty object and exit the function.
+
+1. We enter a loop, not dissimilar to the way the `Lexer` was moving through the characters of the text.
+
+2. If the current token is __*NOT*__ a `String` JSON __key__ as it __*should*__ be, we raise an error stating that we expected an object key, but got something else and exit the program. Otherwise, we advance forward.
+
+3. If the following token is __*NOT*__ a `separator` symbol (JSON uses a `colon`, e.g. `:` by default), we also raise a new error with the following message. Otherwise, we advance forward.
+
+4.  Recursively, call on the `parse` function with an offset of the current `ip`. 
+This allows us to parse n-times nested values of both similar and differend kinds, meaning that an array can consist of many nested sub-objects, simple values, or even objects with nested objects within themselves. 
+
+As recursion is __very__ powerful, so it is tricky to learn and understand. If you would like to learn more on how recursion as a concept works, you can check out [this article](https://medium.com/intuition/how-to-use-recursion-to-draw-1eda4f47f307) on using recursion.
+
+5. We store the `unwrap!`-ed value from the previous step into the object's `key` (from step 2.).
+Unwrapping the value basicaly means that we get the underlying `Token` __raw__ value and store just it. This gets rid of the notion of `Token`s for when the parser returns the finalized JSON object, having it contain only raw values.
+
+6. If the current token is a `RIGHTBRACE` - we advance one token forward and *return* the object we've accumulated thus far.
+
+7. Else, if the current token is __*NOT*__ a `COMMA` (`,`):
+  - 7.1 If the `current` token is __*NOT*__ `nil` - return the currently accumulated object.  
+  - 7.2 Move forward to the next iteration of the loop (from step 1.) if the current token is a `Token` of type `string`.  
+  - 7.3 Otherwise, we raise an error and exit the program.  
+
+8. If we haven't exited the program or function by now, we advance one token forward and continue from step `1.`
+
+9. After the loop has ended, if the symbol at the current `ip` is __*NOT*__ a `RIGHTBRACE` (e.g. `}`) - we raise an error, because we encountered an object that was not properly closed. 
+</details>
+
+The more eagle-eyed amongst the readers will notice that we never did define the `current`, `advance` and `unwrap!` methods for the `Parser` class. If you did not come up with your own implementation, here is the implementation the author wrote:
+
+```ruby
+  def current
+    @tokens[@ip]
+  end
+
+  def advance
+    @ip += 1
+  end
+  
+  def unwrap!(value)
+    return value.value if value.is_a?(Token)
+
+    if value.is_a?(Array)
+      advance
+      value.map do |item|
+        unwrap!(item)
+      end
+    end
+
+    value
+  end
+```
+
+After adding those methods, we can test our basic parser by running the `main.rb` file:
+```console
+$ ruby main.rb 
+{"name"=>"\"John Doe\"", "false"=>true, "true"=>false, "value"=>nil}
+```
+
+<details>
+	<summary>
+		Trivia time
+	</summary>
+You might notice that `String` values are represented with *escaped* double quotes. 
+How can you make them non-escaped?
+
+In other words, how can you make the `value` of a `string` `Token` be represented like the key is?
+Example:
+
+```console
+$ ruby main.rb 
+{"name"=>"John Doe", "false"=>true, "true"=>false, "value"=>nil}
+```
+</details>
+
+We have parsing of objects working now, horray! 🎉 🎉 🎉 
+
+3. Setting up parsing 
+
+The only thing left for us to do, in order to have a working parser is, of course, to be able to parse arrays. 
+
+In order to do that, let's furst modify our `main` method:
+
+```ruby
+def main
+  puts JRB.parse! '{"name":"John Doe", "false": true, "true": false, "value": null, "array": [1,2,3}'
+end
+```
+> You may notice that we've basically just added a new property at the end of our object, called "array". This is plenty for basic testing.
+
+If we run the `main.rb` file now, we get greeted by an interesting error message:
+```console
+$ ruby main.rb 
+[ERROR]: Expected a comma after a key-value pair in object, got an "1"
+```
+
+This error shows up because our parser currently has absolutely *no* idea on how to parse arrays, therefore it tries treating them as objects. Arrays have a very different structure than objects, as they don't have key-value pairs and are instead a collection of comma-separated values.  
+
+The parser gets confused, and thinks that the initial bracket of the array (`[`) is a key-value pair, thus expecting a comma (`,`) symbol after it, but instead it finds a number, thus - raising an error. In order to resolve this issue, we need to add a way of parsing arrays.
+
+4. Parsing arrays
+
+Adding the notion of parsing arrays would require us to add a new `when` clause in our `parse` method
+```ruby 
+    when JSON[:SYMBOLS][:LEFTBRACKET] then parse_array
+```
+
+therefore making our `parse` method looking like this:
+```ruby
+  def parse(is_root: false, offset: 0)
+    @ip = offset
+    token = current
+
+    error! 'Expected root to be an object!' if is_root && token != JSON[:SYMBOLS][:LEFTBRACE]
+
+    advance
+    case token
+    when JSON[:SYMBOLS][:LEFTBRACKET] then parse_array
+    when JSON[:SYMBOLS][:LEFTBRACE] then parse_object
+    else
+      unwrap! token
+    end
+  end
+```
+
+Adding this line would require us to define a new `private` method called `parse_array`:
+```ruby
+  def parse_array
+    array = []
+
+    return array if current == JSON[:SYMBOLS][:RIGHTBRACKET]
+
+    while current
+      item = parse(offset: @ip)
+      array << unwrap!(item)
+
+      if current == JSON[:SYMBOLS][:RIGHTBRACKET] || current == JSON[:SYMBOLS][:RIGHTBRACE]
+        return array
+      elsif current == JSON[:SYMBOLS][:RIGHTBRACE]
+        error! 'Improperly closed array in object'
+      elsif current != JSON[:SYMBOLS][:COMMA]
+        error! "Expected a '#{JSON[:SYMBOLS][:COMMA]}' , got #{current}"
+      else
+        advance
+      end
+    end
+
+    error! "Expected an end-of-array #{JSON[:SYMBOLS][:RIGHTBRACKET]}"
+  end
+```
+
+If you understood the parsing of objects, you can skip the following.
+This might look confusing, or even scary, so I'd suggest reading up on the following section:
+
+<details>
+	<summary> 
+        <h4>Ok, cool, but what's actually happening?</h4>
+    </summary>
+While it *might* look complicated, the way this `parse_array` function works is pretty straightforward:
+
+0. We define a simple variable called `array`, consisting of, you guessed it, an empty array. 
+If the next token is a closing bracket (`]`) - we return the empty array and exit the function.
+
+1. We enter a loop, not dissimilar to the way the `Lexer` was moving through the characters of the text.
+
+2. Recursively, call on the `parse` function with an offset of the current `ip`. 
+This allows us to parse n-times nested values of both similar and differend kinds, meaning that an array can consist of many nested sub-arrays, simple values, or even objects with arrays within themselves. 
+
+As recursion is __very__ powerful, so it is tricky to learn and understand. If you would like to learn more on how recursion as a concept works, you can check out [this article](https://medium.com/intuition/how-to-use-recursion-to-draw-1eda4f47f307) on using recursion.
+
+3. Unwrap (extract) the value from the parsed item (`Token`) and add it to our `array` variable.
+
+4. If the current token is a `RIGHTBRACKET`, we return the currently accumulated `array`.
+
+5. Else, if the current token is __*NOT*__ a comma, we raise the apropriate error, whating that we didn't find the correct array items' separator.
+
+6. Else, if the current token is a `RIGHTBRACE`, we can see that the parent object closes without closing the array, therefore we raise an error and exit the program.
+
+7. Otherwise, we advance to the next token and loop back to step `1.`
+
+8. If we haven't returned an array thus far - raise an error.
+This is done because the array provided has not been closed.
+</details>
+
+Running our application, we can see the results:
+```console
+$ ruby main.rb 
+[ERROR]: Improperly closed array in object
+```
+
+Womp-womp. 🙁  
+We have an error in our JSON.  
+Luckily, this error is very simple to fix, just closing the last item ("array") in the object that we pass to the parser
+```ruby
+def main
+  puts JRB.parse! '{"name":"John Doe", "false": true, "true": false, "value": null, "array": [1,2,3]}'
+end
+```
+
+will fix the issue. Re-running the program we can clearly see the results:
+
+```console
+$ ruby main.rb 
+{"name"=>"\"John Doe\"", "false"=>true, "true"=>false, "value"=>nil, "array"=>[1, 2, 3]}
+```
+
+## Testing 
+Let's test our application. This is done pretty simple, just by modifying input we pass to `JRB.parse!`.
+
+Let's test our app with a more involved JSON example:
+
+```ruby
+def main
+  value = JRB.parse! '
+{
+    "hello": "world",
+    "items": [
+        1,
+        6.9,
+        -1200000,
+        "Hello World!",
+        [
+            1,
+            2,
+            3
+        ],
+        {
+            "name": "John Doe",
+            "false": true,
+            "true": false,
+            "value": null
+        }
+    ],
+    "foo": {
+        "data": {
+            "weirdnum": -4.20e69
+        },
+        "asd": "ASD",
+        "items": []
+    }
+}'
+  puts value
+  puts value.dig('foo', 'data', 'weirdnum')
+end
+```
+
+Running this example, we can see the follwowing output:
+
+```ruby
+$ ruby main.rb 
+{"hello"=>"\"world\"", "items"=>[1, 6.9, -1200000, "\"Hello World!\"", [1, 2, 3], {"name"=>"\"John Doe\"", "false"=>true, "true"=>false, "value"=>nil}], "foo"=>{"data"=>{"weirdnum"=>-4.2e+69}, "asd"=>"\"ASD\"", "items"=>[]}}
+A weird number value: -4.2e+69
+```
+
+This means that our involved example works as expected! 🥳
+
+If you'd like to test all moving parts of the application properly, I would suggest using [rspec](https://rspec.info/) in order to write some unit tests that will prove the functionality of the lexer, parser and utilities.
+
+You can find the project's tests (called `spec`s in RSpec) in the [spec folder](../spec). Notable files are the [parser spec](../spec/parser_spec.rb) and [lexer_spec](../spec/lexer_spec.rb).
+
+
+## Conclusion
+Creating a JSON parser is a fantastic project for software engineers at any level, whether you're a beginner, intermediate, advanced, or a seasoned professional. This project demands a good grasp of JSON, the web's data format, as well as an understanding of recursion and solid programming fundamentals.
+
+I hope you enjoyed reading this! If you did so, please give a star to [the repo](https://github.com/Shannarra/json-rb/) and/or share with a friend who might be interested in learning how to build a project like that from scratch!
+

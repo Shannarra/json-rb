@@ -47,7 +47,7 @@ class Parser
     while current
       key = current
 
-      if !key.is_a?(Token) || key.type != TokenType::String
+      unless key.string_token?
         return object if key == JSON[:SYMBOLS][:RIGHTBRACE]
 
         error! "Expected a string key in object, got \"#{key}\" at #{ip}"
@@ -88,8 +88,10 @@ class Parser
       item = parse(offset: @ip)
       array << unwrap!(item)
 
-      if current == JSON[:SYMBOLS][:RIGHTBRACKET] || current == JSON[:SYMBOLS][:RIGHTBRACE]
+      if current == JSON[:SYMBOLS][:RIGHTBRACKET]
         return array
+      elsif current == JSON[:SYMBOLS][:RIGHTBRACE]
+        error! 'Improperly closed array in object'
       elsif current != JSON[:SYMBOLS][:COMMA]
         error! "Expected a '#{JSON[:SYMBOLS][:COMMA]}' , got #{current}"
       else

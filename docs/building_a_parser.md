@@ -42,7 +42,7 @@ First off, we'd need to have a standardized basic setup. For the purpose of this
 For now, we can just print "Hello world!" to the console:
 ```ruby
 def main
-	puts "Hello World!"
+  puts "Hello World!"
 end
 
 main
@@ -261,7 +261,7 @@ d
 !
 ```
 
-3. Adding some basic text lexing
+3. Adding some basic text lexing  
 Continuing the work on the lexer, we can modify the `lex` method to the following:
 
 ```ruby
@@ -362,7 +362,7 @@ Now, re-running the application we will be greeted by a `NameError` 😱:
 
 The Ruby compiler is telling us that it does not know what this construct called `Token` is, and we ought to fix that immediately!
 
-4. A compiler screaming in horror
+4. A compiler screaming in horror  
 In order to fix the compiler error, we'd need to add the notion of `Token` to our project. To do that, we can go ahead and add a new file called `token.rb` into our `src` folder. Inside of it, we will need to add the following contents:
 ```ruby
 TokenType = enum %w[
@@ -410,7 +410,7 @@ require_relative 'token'
 
 class Lexer
   attr_reader :text, :tokens, :ip
-v
+
   def initialize(text)
 ```
 
@@ -420,7 +420,7 @@ $ ruby main.rb
 Token<[String] = "Hello world!">
 ```
 
-5. Numbers
+5. Numbers  
 Adding the ability to lex numbers is not *that* difficult either. We'd need to add a new function call to line 27 of our `lexer.rb` (or just below the `end` of our `unless jstr.nil?` clause) in the `lex` method, so it looks something like:
 
 ```ruby
@@ -495,7 +495,7 @@ Token<[Number] = 4.2>
 
 We can clearly see that it works perfectly, and it supports [scientific notation](https://en.wikipedia.org/wiki/Scientific_notation), as well as negative numbers, floats and integers alike.
 
-6. Finishing up with lexing
+6. Finishing up with lexing  
 The only things left to be able to parse is `boolean` values (e.g. `true` and `false`) and `null`. 
 We can add a couple more handlers for booleans and "null" values in our `lexer.rb`'s `lex` function. 
 At the end of it, our `lex` function should look like so:
@@ -587,7 +587,7 @@ And lexing a `null` value is done in a not too-dissimilar way:
 	<summary> 
         <h4>How does lexing a null work?</h4>
     </summary>
-Null lexing is the same as lexing a boolean, but instead of matching two values, we only need to match for `"null"`.
+Null lexing is the same as lexing a boolean, but instead of matching two values, we only need to match for "null".
 </details>
 
 Now, if we go ahead and modify our `main.rb` one last time for this section
@@ -629,7 +629,7 @@ Neither the basic `Ruby` language, nor most programmers know how to use those, a
 
 Parsing is the process of converting formatted text into a data structure. A data structure type can be any suitable representation of the information engraved in the source text ([The Mighty Programmer](https://themightyprogrammer.dev/article/parsing)). For our purposes, we would use a [Hash](https://ruby-doc.org/core-2.5.1/Hash.html) data structure, as they perfectly represent the dictionary-based layout of JSON in a neat format to both read and write as programmers. So, how do we do it?
 
-0. First part, obviously, is a setup. 
+0. First part, obviously, is a setup.  
 We'd want to store the parser somewhere, hence we can create a new file in our `src` folder. Let's call it `parser.rb`. Now, if we take a look at our directory tree we can see the following:
 
 ```console
@@ -794,8 +794,8 @@ If you are interested in what happends in this function and how does it work, ex
 	<summary> 
         <h4>How does parsing objects work?</h4>
     </summary>
-0. We define a simple variable called `object`, consisting of, you guessed it, an empty object (`Hash`). 
-If the next token is a closing brace (`}`) - we return the empty object and exit the function.
+0.  We define a simple variable called `object`, consisting of, you guessed it, an empty object (Hash). 
+If the next token is a closing brace ("}") - we return the empty object and exit the function.
 
 1. We enter a loop, not dissimilar to the way the `Lexer` was moving through the characters of the text.
 
@@ -858,10 +858,10 @@ $ ruby main.rb
 	<summary>
 		Trivia time
 	</summary>
-You might notice that `String` values are represented with *escaped* double quotes. 
+You might notice that <code>String</code> values are represented with <i>escaped</i> double quotes. 
 How can you make them non-escaped?
 
-In other words, how can you make the `value` of a `string` `Token` be represented like the key is?
+In other words, how can you make the <code>value</code> of a <code>string</code> <code>Token</code> be represented like the key is?
 Example:
 
 ```console
@@ -953,7 +953,7 @@ This might look confusing, or even scary, so I'd suggest reading up on the follo
 	<summary> 
         <h4>Ok, cool, but what's actually happening?</h4>
     </summary>
-While it *might* look complicated, the way this `parse_array` function works is pretty straightforward:
+While it <i>might</i> look complicated, the way this <code>parse_array</code> function works is pretty straightforward:
 
 0. We define a simple variable called `array`, consisting of, you guessed it, an empty array. 
 If the next token is a closing bracket (`]`) - we return the empty array and exit the function.
@@ -962,8 +962,6 @@ If the next token is a closing bracket (`]`) - we return the empty array and exi
 
 2. Recursively, call on the `parse` function with an offset of the current `ip`. 
 This allows us to parse n-times nested values of both similar and differend kinds, meaning that an array can consist of many nested sub-arrays, simple values, or even objects with arrays within themselves. 
-
-As recursion is __very__ powerful, so it is tricky to learn and understand. If you would like to learn more on how recursion as a concept works, you can check out [this article](https://medium.com/intuition/how-to-use-recursion-to-draw-1eda4f47f307) on using recursion.
 
 3. Unwrap (extract) the value from the parsed item (`Token`) and add it to our `array` variable.
 
@@ -1036,8 +1034,10 @@ def main
         "items": []
     }
 }'
+
   puts value
-  puts value.dig('foo', 'data', 'weirdnum')
+  
+  puts "A weird number value: #{value.dig('foo', 'data', 'weirdnum')}"
 end
 ```
 

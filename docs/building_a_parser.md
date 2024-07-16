@@ -28,7 +28,7 @@ JSON.parse!('{"username": "Shannarra", "language": "Ruby", "version": 3.0}')
 ```
 And using our own parser would be of no difference semantically:
 ```ruby
-JRB.parse! '{"username": "Shannarra", "language": "Ruby", "version": 3.0}'
+JRB.parse!('{"username": "Shannarra", "language": "Ruby", "version": 3.0}')
 ```
 Both of those will yield similar result:
 ```ruby
@@ -327,6 +327,8 @@ After all of those edge-cases have been escaped, we start an "infinite" (not rea
 2. If there is __NOT__ a current character - raise an `error`, stating that we have found an unterminated string (e.g. it does not end with a `"`).
 3. If there was no error - advance the ip
 4. If the current symbol is a quote (`"`), this means that we have found the end of the string and we can safely return it and exit the function.
+
+---
 </details>
 
 After saving the `lexer` file, if we run the program we will get greeted by the following error:
@@ -471,6 +473,8 @@ If an invalid character has been encountered - we exit and return `nil`, meaning
 
 If, however, the collected characters constitute a valid number, we check if the number contains a decimal point (`.`) or is in standard notation (e.g. `12e6`).
 If it does - we parse it to a `float` and return a new number token. Otherwise, we parse it as an `int` and return it that way.
+
+---
 </details>
 
 In order to test that our number lexing works as expected, we can modify our `main.rb` file so something like:
@@ -566,6 +570,8 @@ The first one consists of the following:
 Boolean lexing is generally straightforward.
 
 We collect characters until we have enough characters to match a "true" it a "false" string. If we match any of those - we return a `Token` with that value, otherwise we return an invalid token and continue iterating.
+
+---
 </details>
 
 And lexing a `null` value is done in a not too-dissimilar way:
@@ -588,6 +594,8 @@ And lexing a `null` value is done in a not too-dissimilar way:
         <h4>How does lexing a null work?</h4>
     </summary>
 Null lexing is the same as lexing a boolean, but instead of matching two values, we only need to match for "null".
+
+---
 </details>
 
 Now, if we go ahead and modify our `main.rb` one last time for this section
@@ -821,6 +829,8 @@ Unwrapping the value basicaly means that we get the underlying `Token` __raw__ v
 8. If we haven't exited the program or function by now, we advance one token forward and continue from step `1.`
 
 9. After the loop has ended, if the symbol at the current `ip` is __*NOT*__ a `RIGHTBRACE` (e.g. `}`) - we raise an error, because we encountered an object that was not properly closed. 
+
+---
 </details>
 
 The more eagle-eyed amongst the readers will notice that we never did define the `current`, `advance` and `unwrap!` methods for the `Parser` class. If you did not come up with your own implementation, here is the implementation the author wrote:
@@ -868,6 +878,8 @@ Example:
 $ ruby main.rb 
 {"name"=>"John Doe", "false"=>true, "true"=>false, "value"=>nil}
 ```
+
+---
 </details>
 
 We have parsing of objects working now, horray! 🎉 🎉 🎉 
@@ -931,7 +943,7 @@ Adding this line would require us to define a new `private` method called `parse
       item = parse(offset: @ip)
       array << unwrap!(item)
 
-      if current == JSON[:SYMBOLS][:RIGHTBRACKET] || current == JSON[:SYMBOLS][:RIGHTBRACE]
+      if current == JSON[:SYMBOLS][:RIGHTBRACKET]
         return array
       elsif current == JSON[:SYMBOLS][:RIGHTBRACE]
         error! 'Improperly closed array in object'
@@ -975,6 +987,8 @@ This allows us to parse n-times nested values of both similar and differend kind
 
 8. If we haven't returned an array thus far - raise an error.
 This is done because the array provided has not been closed.
+
+---
 </details>
 
 Running our application, we can see the results:

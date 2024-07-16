@@ -226,7 +226,6 @@ describe Parser do
 
       before(:each) do
         @result = parse! text
-        
 
         @items_result = [
           1,

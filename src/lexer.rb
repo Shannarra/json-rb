@@ -1,10 +1,14 @@
 require_relative 'util'
 require_relative 'token'
+require_relative 'config'
 
 class Lexer
+  include Config
+
   attr_reader :text, :tokens, :ip
 
   def initialize(text)
+    @@config ||= default_config
     @text = text
     @tokens = []
     @ip = 0
@@ -34,9 +38,9 @@ class Lexer
       # this reads weird as fuck
       tokens << null unless null.nil?
 
-      if JSON[:WHITESPACE].include?(current)
+      if @@config[:WHITESPACE].include?(current)
         advance
-      elsif JSON[:SYMBOLS].values.include?(current)
+      elsif @@config[:SYMBOLS].values.include?(current)
         tokens << current
         advance
       else
@@ -60,11 +64,11 @@ class Lexer
   end
 
   def lex_str
-    return nil if current != JSON[:SYMBOLS][:QUOTE]
+    return nil if current != @@config[:SYMBOLS][:QUOTE]
 
     str = current
     advance
-    return Token.new(TokenType::String, (str += current)) if current == JSON[:SYMBOLS][:QUOTE]
+    return Token.new(TokenType::String, (str += current)) if current == @@config[:SYMBOLS][:QUOTE]
 
     loop do
       if current
@@ -74,7 +78,7 @@ class Lexer
       end
 
       advance
-      return Token.new(TokenType::String, (str += current)) if current == JSON[:SYMBOLS][:QUOTE]
+      return Token.new(TokenType::String, (str += current)) if current == @@config[:SYMBOLS][:QUOTE]
     end
   end
 
@@ -98,7 +102,7 @@ class Lexer
   end
 
   def lex_bool
-    bool_vals = JSON[:BOOLEAN]
+    bool_vals = @@config[:BOOLEAN]
     possible_values = bool_vals.values.map(&:chars).flatten.uniq
 
     jbool = ''
@@ -122,12 +126,12 @@ class Lexer
     null = ''
 
     while current
-      break unless JSON[:NULL].chars.include?(current)
+      break unless @@config[:NULL].chars.include?(current)
 
-      null += current if JSON[:NULL].chars.include?(current)
+      null += current if @@config[:NULL].chars.include?(current)
       advance
     end
 
-    Token.new(TokenType::Null, nil) if null == JSON[:NULL]
+    Token.new(TokenType::Null, nil) if null == @@config[:NULL]
   end
 end

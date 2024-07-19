@@ -1,7 +1,13 @@
+require_relative 'config'
+
 class Parser
+  include Config
+
   attr_accessor :tokens, :ip
 
   def initialize(tokens, offset)
+    @@config ||= default_config
+
     @tokens = tokens
     @ip = offset
   end
@@ -15,12 +21,12 @@ class Parser
     @ip = offset
     token = current
 
-    error! 'Expected root to be an object!' if is_root && token != JSON[:SYMBOLS][:LEFTBRACE]
+    error! 'Expected root to be an object!' if is_root && token != @@config[:SYMBOLS][:LEFTBRACE]
 
     advance
     case token
-    when JSON[:SYMBOLS][:LEFTBRACKET] then parse_array
-    when JSON[:SYMBOLS][:LEFTBRACE] then parse_object
+    when @@config[:SYMBOLS][:LEFTBRACKET] then parse_array
+    when @@config[:SYMBOLS][:LEFTBRACE] then parse_object
     else
       unwrap! token
     end
@@ -39,7 +45,7 @@ class Parser
   def parse_object
     object = {}
 
-    if current == JSON[:SYMBOLS][:RIGHTBRACE]
+    if current == @@config[:SYMBOLS][:RIGHTBRACE]
       advance
       return object
     end
@@ -48,24 +54,24 @@ class Parser
       key = current
 
       unless key.string_token?
-        return object if key == JSON[:SYMBOLS][:RIGHTBRACE]
+        return object if key == @@config[:SYMBOLS][:RIGHTBRACE]
 
         error! "Expected a string key in object, got \"#{key}\" at #{ip}"
       end
 
       advance
 
-      error! "Expected a colon separator character after key in object, got \"#{current}\"" unless current == JSON[:SYMBOLS][:COLON]
+      error! "Expected a colon separator character after key in object, got \"#{current}\"" unless current == @@config[:SYMBOLS][:COLON]
 
       advance
       value = parse(offset: @ip)
 
       object[key.value.tr('"', '')] = unwrap!(value)
 
-      if current == JSON[:SYMBOLS][:RIGHTBRACE]
+      if current == @@config[:SYMBOLS][:RIGHTBRACE]
         advance
         return object
-      elsif current != JSON[:SYMBOLS][:COMMA]
+      elsif current != @@config[:SYMBOLS][:COMMA]
         return object unless current
 
         next if current.string_token?
@@ -76,30 +82,30 @@ class Parser
       advance
     end
 
-    error! "Expected end-of-object symbol #{JSON[:SYMBOLS][:RIGHTBRACE]}"
+    error! "Expected end-of-object symbol #{@@config[:SYMBOLS][:RIGHTBRACE]}"
   end
 
   def parse_array
     array = []
 
-    return array if current == JSON[:SYMBOLS][:RIGHTBRACKET]
+    return array if current == @@config[:SYMBOLS][:RIGHTBRACKET]
 
     while current
       item = parse(offset: @ip)
       array << unwrap!(item)
 
-      if current == JSON[:SYMBOLS][:RIGHTBRACKET]
+      if current == @@config[:SYMBOLS][:RIGHTBRACKET]
         return array
-      elsif current == JSON[:SYMBOLS][:RIGHTBRACE]
+      elsif current == @@config[:SYMBOLS][:RIGHTBRACE]
         error! 'Improperly closed array in object'
-      elsif current != JSON[:SYMBOLS][:COMMA]
-        error! "Expected a '#{JSON[:SYMBOLS][:COMMA]}' , got #{current}"
+      elsif current != @@config[:SYMBOLS][:COMMA]
+        error! "Expected a '#{@@config[:SYMBOLS][:COMMA]}' , got #{current}"
       else
         advance
       end
     end
 
-    error! "Expected an end-of-array #{JSON[:SYMBOLS][:RIGHTBRACKET]}"
+    error! "Expected an end-of-array #{@@config[:SYMBOLS][:RIGHTBRACKET]}"
   end
 
   def unwrap!(value)

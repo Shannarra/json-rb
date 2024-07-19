@@ -33,8 +33,8 @@ def main
   puts value
   puts value.dig('foo', 'data', 'weirdnum')
 
-  value = JRB.parse! File.read('./tests/very_nested.json')
-  puts value
+  value = JRB.parse!(File.read('./tests/jrb/arrays_instead_of_objects.jrb'), config_file: 'config.json')
+  pp value
 end
 
 main

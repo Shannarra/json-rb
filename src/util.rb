@@ -1,20 +1,20 @@
-JSON = {
-  SYMBOLS: {
-    COMMA: ',',
-    COLON: ':',
-    LEFTBRACKET: '[',
-    RIGHTBRACKET: ']',
-    LEFTBRACE: '{',
-    RIGHTBRACE: '}',
-    QUOTE: '"'
-  },
-  WHITESPACE: ['', ' ', "\r", "\b", "\n", "\t"],
-  BOOLEAN: {
-    TRUE: 'true',
-    FALSE: 'false'
-  },
-  NULL: 'null'
-}.freeze
+# JSON = {
+#   SYMBOLS: {
+#     COMMA: ',',
+#     COLON: ':',
+#     LEFTBRACKET: '[',
+#     RIGHTBRACKET: ']',
+#     LEFTBRACE: '{',
+#     RIGHTBRACE: '}',
+#     QUOTE: '"'
+#   },
+#   WHITESPACE: ['', ' ', "\r", "\b", "\n", "\t"],
+#   BOOLEAN: {
+#     TRUE: 'true',
+#     FALSE: 'false'
+#   },
+#   NULL: 'null'
+# }.freeze
 
 module Kernel
   def enum(values)
@@ -30,5 +30,11 @@ module Kernel
   def error!(message)
     puts "[ERROR]: #{message}"
     exit(1)
+  end
+end
+
+class Hash
+  def symbolize_keys
+    each_with_object({}) { |(k, v), h| h[k.to_sym] = v.is_a?(Hash) ? v.symbolize_keys : v }
   end
 end

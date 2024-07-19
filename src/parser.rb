@@ -103,7 +103,11 @@ class Parser
   end
 
   def unwrap!(value)
-    return value.value if value.is_a?(Token)
+    if value.is_a?(Token)
+      return value.value.tr('"', '') if value.string_token?
+
+      return value.value
+    end
 
     if value.is_a?(Array)
       advance

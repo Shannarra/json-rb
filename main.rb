@@ -1,13 +1,5 @@
 require 'pry'
-
-require_relative 'src/parser'
-require_relative 'src/lexer'
-
-class JRB
-  def self.parse!(text)
-    Parser.parse! Lexer.lex! text
-  end
-end
+require_relative 'src/jrb'
 
 def main
   value = JRB.parse! '

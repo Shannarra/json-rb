@@ -14,7 +14,7 @@ describe Parser do
       it 'strings' do
         text = '"hello world", "asd"'
 
-        expect(parse!(text)).to eq '"hello world"'
+        expect(parse!(text)).to eq 'hello world'
       end
 
       it 'numbers' do
@@ -47,7 +47,7 @@ describe Parser do
         text = '{"prop": "hello world"}'
         result = parse!(text)
 
-        expect(result['prop']).to eq '"hello world"'
+        expect(result['prop']).to eq 'hello world'
       end
 
       it 'with numbers as values' do
@@ -79,7 +79,7 @@ describe Parser do
 
         result = parse! text
 
-        expect(result['items']).to match ['"hello world"', '"asd"']
+        expect(result['items']).to match ['hello world', 'asd']
       end
 
       it 'numbers' do
@@ -111,7 +111,7 @@ describe Parser do
 
         result = parse! text
 
-        expect(result['items']).to match [1, 6.9, -1.2e6, '"Hello World!"', { 'name' => '"John Doe"' }, [2, 3, 4, 5, 6]]
+        expect(result['items']).to match [1, 6.9, -1.2e6, 'Hello World!', { 'name' => 'John Doe' }, [2, 3, 4, 5, 6]]
       end
     end
 
@@ -133,8 +133,8 @@ describe Parser do
           int: 1,
           float: 6.9,
           exp: -1.2e6,
-          str: '"Hello World!"',
-          object: { 'name' => '"John Doe"' },
+          str: 'Hello World!',
+          object: { 'name' => 'John Doe' },
           array: [2, 3, 4, 5, 6]
         }
 
@@ -185,9 +185,9 @@ describe Parser do
 
         # if this passes then everything will, I hope :prayge:
         drug = classes.first['className'].first['associatedDrug'].first
-        expect(drug['name']).to eq '"asprin"'
-        expect(drug['dose']).to eq '""'
-        expect(drug['strength']).to eq '"500 mg"'
+        expect(drug['name']).to eq 'asprin'
+        expect(drug['dose']).to eq ''
+        expect(drug['strength']).to eq '500 mg'
       end
     end
 
@@ -231,7 +231,7 @@ describe Parser do
           1,
           6.9,
           -1_200_000,
-          '"Hello World!"',
+          'Hello World!',
           nil,
           false,
           true,
@@ -241,7 +241,7 @@ describe Parser do
             3
           ],
           {
-            'name' => '"John Doe"',
+            'name' => 'John Doe',
             'false' => true,
             'true' => false,
             'value' => nil
@@ -250,7 +250,7 @@ describe Parser do
       end
 
       it 'handles values before array' do
-        expect(@result['hello']).to eq '"world"'
+        expect(@result['hello']).to eq 'world'
       end
 
       context 'handles the array correctly' do
@@ -285,7 +285,7 @@ describe Parser do
         end
 
         it 'and object\'s values correctly' do
-          expect(@obj['asd']).to eq '"ASD"'
+          expect(@obj['asd']).to eq 'ASD'
         end
       end
     end

@@ -53,7 +53,7 @@ class Parser
     while current
       key = current
 
-      unless key.string_token?
+      unless key.is_a?(Token) && key.string_token?
         return object if key == @@config[:SYMBOLS][:RIGHTBRACE]
 
         error! "Expected a string key in object, got \"#{key}\" at #{ip}"
@@ -74,7 +74,7 @@ class Parser
       elsif current != @@config[:SYMBOLS][:COMMA]
         return object unless current
 
-        next if current.string_token?
+        next if current.is_a?(Token) && current.string_token?
 
         error! "Expected a comma after a key-value pair in object, got an \"#{unwrap! current}\""
       end

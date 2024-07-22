@@ -3,19 +3,11 @@
         "COMMA": "⸲",
         "COLON": "→",
         "LEFTBRACKET": "{",
-        "RIGHTBRACKET": "}",
+				"RIGHTBRACKET": "}",
         "LEFTBRACE": "[",
         "RIGHTBRACE": "]",
         "QUOTE": "single"
     },
-    "WHITESPACE": [
-        "",
-        " ",
-        "\r",
-        "\b",
-        "\n",
-        "\t"
-    ],
     "BOOLEAN": {
         "TRUE": "да",
         "FALSE": "не"

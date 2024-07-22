@@ -758,7 +758,7 @@ Parsing the tokens as an object requires us to define a new `private` method cal
     while current
       key = current
 
-      unless key.string_token?
+      unless key.is_a?(Token) && key.string_token?
         return object if key == JSON[:SYMBOLS][:RIGHTBRACE]
 
         error! "Expected a string key in object, got \"#{key}\" at #{ip}"
@@ -779,7 +779,7 @@ Parsing the tokens as an object requires us to define a new `private` method cal
       elsif current != JSON[:SYMBOLS][:COMMA]
         return object unless current
 
-        next if current.string_token?
+        next if key.is_a?(Token) && current.string_token?
 
         error! "Expected a comma after a key-value pair in object, got an \"#{unwrap! current}\""
       end

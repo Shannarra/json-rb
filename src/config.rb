@@ -7,19 +7,20 @@ module Config
   def config_from_file!(file)
     error! "Config file \"#{file}\" provided does not exist!" unless File.file? file
 
-    res = JRB.parse!(File.read(file)).symbolize_keys
+    @__res = JRB.parse!(File.read(file)).symbolize_keys
 
-    check_symbols_match! res
+    check_symbols_match!
 
-    check_quotes! res
+    check_quotes!
 
-    check_whitespace! res
+    check_whitespace!
 
-    check_booleans! res
+    check_booleans!
 
-    check_config_values! res.values
+    check_config_values! @__res.values
+
     # All checks done, merge with default for non-required keys if they don't exist
-    config!(config: default_config.merge(res))
+    config!(config: default_config.merge(@__res))
   end
 
   def default_config
@@ -45,32 +46,32 @@ module Config
 
   private
 
-  def check_symbols_match!(res)
-    required_object_check!(:SYMBOLS, res)
+  def check_symbols_match!
+    required_object_check!(:SYMBOLS)
   end
 
-  def check_quotes!(res)
-    quote = res.dig(:SYMBOLS, :QUOTE)
+  def check_quotes!
+    quote = @__res.dig(:SYMBOLS, :QUOTE)
 
-    res[:SYMBOLS][:QUOTE] = case quote
-                            when 'double' then '"'
-                            when 'single' then "'"
-                            else error! "JRB config quote must be either \"single\" or \"double\", got \"#{quote}\""
-                            end
+    @__res[:SYMBOLS][:QUOTE] = case quote
+                               when 'double' then '"'
+                               when 'single' then "'"
+                               else error! "JRB config quote must be either \"single\" or \"double\", got \"#{quote}\""
+                               end
   end
 
-  def check_whitespace!(res)
-    return unless res[:WHITESPACE]
+  def check_whitespace!
+    return unless @__res[:WHITESPACE]
 
-    res[:WHITESPACE] = if res[:WHITESPACE]
-                         res[:WHITESPACE]&.map { |x| "\"#{x}\"".undump }
-                       else
-                         default_config[:WHITESPACE]
-                       end
+    @__res[:WHITESPACE] = if @__res[:WHITESPACE]
+                            @__res[:WHITESPACE]&.map { |x| "\"#{x}\"".undump }
+                          else
+                            default_config[:WHITESPACE]
+                          end
   end
 
-  def check_booleans!(res)
-    required_object_check!(:BOOLEAN, res)
+  def check_booleans!
+    required_object_check!(:BOOLEAN)
   end
 
   def check_config_values!(values)
@@ -83,11 +84,11 @@ module Config
     end
   end
 
-  def required_object_check!(name, res)
-    error! "Config does not provide a required \"#{name}\" object!" unless res[name]
+  def required_object_check!(name)
+    error! "Config does not provide a required \"#{name}\" object!" unless @__res[name]
 
     expected_symbols = default_config[name].keys
-    res_keys = res[name].keys
+    res_keys = @__res[name].keys
 
     all_exist = res_keys.all? { |sym| expected_symbols.include?(sym) }
 

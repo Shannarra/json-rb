@@ -17,6 +17,8 @@ module Config
 
     check_booleans!
 
+    check_keytype!
+
     check_config_values! @__res.values
 
     # All checks done, merge with default for non-required keys if they don't exist
@@ -40,7 +42,7 @@ module Config
         FALSE: 'false'
       },
       NULL: 'null',
-      KEYTYPE: 'symbol'
+      KEYTYPE: 'string'
     }.freeze
   end
 
@@ -72,6 +74,18 @@ module Config
 
   def check_booleans!
     required_object_check!(:BOOLEAN)
+  end
+
+  def check_keytype!
+    type = @__res[:KEYTYPE]
+
+    return unless type
+
+    if %w[symbol string].include?(type)
+      @__res[:KEYTYPE] = type
+    else
+      error! "Value for option \"KEYTYPE\" must be either \"symbol\" or \"string\", got a \"#{type}\"."
+    end
   end
 
   def check_config_values!(values)

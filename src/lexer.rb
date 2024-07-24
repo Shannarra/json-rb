@@ -5,13 +5,16 @@ require_relative 'config'
 class Lexer
   include Config
 
-  attr_reader :text, :tokens, :ip
+  attr_reader :text, :tokens, :ip, :line, :col
 
   def initialize(text)
     @@config ||= default_config
     @text = text
     @tokens = []
     @ip = 0
+
+    @line = 0
+    @col = 0
   end
 
   def self.lex!(text)
@@ -39,14 +42,19 @@ class Lexer
       tokens << null unless null.nil?
 
       if @@config[:WHITESPACE].include?(current)
+        if current == "\n"
+          @line += 1
+          @col = 0
+        end
+
         advance
       elsif @@config[:SYMBOLS].values.include?(current)
-        tokens << current
+        tokens << Token.new(TokenType::Symbol, current, line, col)
         advance
       else
         break unless current
 
-        error! "Unknown token \"#{current}\" encountered at #{ip}"
+        error! "Unknown token \"#{current}\" encountered at #{line}:#{col}"
       end
     end
 
@@ -60,6 +68,7 @@ class Lexer
   end
 
   def advance
+    @col += 1
     @ip += 1
   end
 
@@ -68,7 +77,7 @@ class Lexer
 
     str = current
     advance
-    return Token.new(TokenType::String, (str += current)) if current == @@config[:SYMBOLS][:QUOTE]
+    return Token.new(TokenType::String, (str += current), line, col) if current == @@config[:SYMBOLS][:QUOTE]
 
     loop do
       if current
@@ -78,7 +87,7 @@ class Lexer
       end
 
       advance
-      return Token.new(TokenType::String, (str += current)) if current == @@config[:SYMBOLS][:QUOTE]
+      return Token.new(TokenType::String, (str += current), line, col) if current == @@config[:SYMBOLS][:QUOTE]
     end
   end
 
@@ -96,9 +105,9 @@ class Lexer
 
     return nil if num.empty?
 
-    return Token.new(TokenType::Number, num.to_f) if num.include?('.') || num.include?('e')
+    return Token.new(TokenType::Number, num.to_f, line, col) if num.include?('.') || num.include?('e')
 
-    Token.new(TokenType::Number, num.to_i)
+    Token.new(TokenType::Number, num.to_i, line, col)
   end
 
   def lex_bool
@@ -116,9 +125,9 @@ class Lexer
 
     case jbool
     when bool_vals[:TRUE]
-      Token.new(TokenType::Boolean, true)
+      Token.new(TokenType::Boolean, true, line, col)
     when bool_vals[:FALSE]
-      Token.new(TokenType::Boolean, false)
+      Token.new(TokenType::Boolean, false, line, col)
     end
   end
 
@@ -132,6 +141,6 @@ class Lexer
       advance
     end
 
-    Token.new(TokenType::Null, nil) if null == @@config[:NULL]
+    Token.new(TokenType::Null, nil, line, col) if null == @@config[:NULL]
   end
 end

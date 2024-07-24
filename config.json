@@ -12,5 +12,6 @@
         "TRUE": "да",
         "FALSE": "не"
     },
-    "NULL": "fuck"
+    "NULL": "fuck",
+		"KEYTYPE": "symbol",
 }

@@ -7,15 +7,25 @@ TokenType = enum %w[
 ]
 
 class Token
-  attr_reader :type, :value
+  attr_reader :type, :value, :line, :col
 
-  def initialize(type, value)
+  def initialize(type, value, line, col)
     @type = type
     @value = value
+    @line = line
+    @col = col
+  end
+
+  def position
+    "#{line}:#{col}"
+  end
+
+  def value_with_position
+    "#{value || '"null"'} at #{position}"
   end
 
   def to_s
-    "Token<[#{type}] = #{value}>"
+    "Token<[#{type}] = #{value}> #{position}"
   end
 
   def ==(other)

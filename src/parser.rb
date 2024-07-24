@@ -21,10 +21,10 @@ class Parser
     @ip = offset
     token = current
 
-    error! 'Expected root to be an object!' if is_root && token != @@config[:SYMBOLS][:LEFTBRACE]
+    error! 'Expected root to be an object!' if is_root && token.value != @@config[:SYMBOLS][:LEFTBRACE]
 
     advance
-    case token
+    case token.value
     when @@config[:SYMBOLS][:LEFTBRACKET] then parse_array
     when @@config[:SYMBOLS][:LEFTBRACE] then parse_object
     else
@@ -42,26 +42,31 @@ class Parser
     @ip += 1
   end
 
+  def prev
+    @tokens[@ip - 1]
+  end
+
   def parse_object
     object = {}
 
     if current == @@config[:SYMBOLS][:RIGHTBRACE]
       advance
-      return object
+      return with_matching_key_type(object)
     end
 
     while current
       key = current
 
       unless key.is_a?(Token) && key.string_token?
-        return object if key == @@config[:SYMBOLS][:RIGHTBRACE]
+        return with_matching_key_type(object) if key == @@config[:SYMBOLS][:RIGHTBRACE]
 
         error! "Expected a string key in object, got \"#{key}\" at #{ip}"
       end
 
       advance
-
-      error! "Expected a colon separator character after key in object, got \"#{current}\"" unless current == @@config[:SYMBOLS][:COLON]
+      unless current == @@config[:SYMBOLS][:COLON]
+        error! "Expected a colon separator character after key in object, got #{current.value_with_position}"
+      end
 
       advance
       value = parse(offset: @ip)
@@ -70,11 +75,11 @@ class Parser
 
       if current == @@config[:SYMBOLS][:RIGHTBRACE]
         advance
-        return object
+        return with_matching_key_type(object)
       elsif current != @@config[:SYMBOLS][:COMMA]
-        return object unless current
+        return with_matching_key_type(object) unless current
 
-        next if current.is_a?(Token) && current.string_token?
+        next if current.string_token? && prev.symbol_token?
 
         error! "Expected a comma after a key-value pair in object, got an \"#{unwrap! current}\""
       end
@@ -97,9 +102,9 @@ class Parser
       if current == @@config[:SYMBOLS][:RIGHTBRACKET]
         return array
       elsif current == @@config[:SYMBOLS][:RIGHTBRACE]
-        error! 'Improperly closed array in object'
+        error! "Improperly closed array in object, got #{current.value_with_position}"
       elsif current != @@config[:SYMBOLS][:COMMA]
-        error! "Expected a '#{@@config[:SYMBOLS][:COMMA]}' , got #{current}"
+        error! "Expected a '#{@@config[:SYMBOLS][:COMMA]}' , got #{current.value_with_position}"
       else
         advance
       end
@@ -123,5 +128,12 @@ class Parser
     end
 
     value
+  end
+
+  def with_matching_key_type(obj)
+    case @@config[:KEYTYPE]
+    when 'symbol' then obj.symbolize_keys
+    when 'string' then obj.stringify_keys
+    end
   end
 end

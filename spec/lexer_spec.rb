@@ -10,10 +10,10 @@ describe Lexer do
 multiline string"'
         result = Lexer.lex!(text)
         tokens = [
-          Token.new(TokenType::String, '"hello world"'),
-          ',',
+          Token.new(TokenType::String, '"hello world"', 0, 0),
+          Token.new(TokenType::Symbol, ',', 0, 0),
           Token.new(TokenType::String, '"I am a
-multiline string"')
+multiline string"', 0, 0)
         ]
 
         expect(result.length).to eq 3
@@ -28,17 +28,17 @@ multiline string"')
         result = Lexer.lex!(text)
 
         tokens = [
-          Token.new(TokenType::Number, 1),
-          ',',
-          Token.new(TokenType::Number, 6.9),
-          ',',
-          Token.new(TokenType::Number, -2),
-          ',',
-          Token.new(TokenType::Number, -420.0),
-          ',',
-          Token.new(TokenType::Number, 3e6),
-          ',',
-          Token.new(TokenType::Number, -2e6)
+          Token.new(TokenType::Number, 1, 0, 0),
+          Token.new(TokenType::Symbol, ',', 0, 0),
+          Token.new(TokenType::Number, 6.9, 0, 0),
+          Token.new(TokenType::Symbol, ',', 0, 0),
+          Token.new(TokenType::Number, -2, 0, 0),
+          Token.new(TokenType::Symbol, ',', 0, 0),
+          Token.new(TokenType::Number, -420.0, 0, 0),
+          Token.new(TokenType::Symbol, ',', 0, 0),
+          Token.new(TokenType::Number, 3e6, 0, 0),
+          Token.new(TokenType::Symbol, ',', 0, 0),
+          Token.new(TokenType::Number, -2e6, 0, 0)
         ]
 
         expect(result.length).to eq 11
@@ -53,9 +53,9 @@ multiline string"')
         result = Lexer.lex!(text)
 
         tokens = [
-          Token.new(TokenType::Boolean, true),
-          ',',
-          Token.new(TokenType::Boolean, false)
+          Token.new(TokenType::Boolean, true, 0, 0),
+          Token.new(TokenType::Symbol, ',', 0, 0),
+          Token.new(TokenType::Boolean, false, 0, 0)
         ]
         expect(result.length).to eq 3
 
@@ -69,7 +69,7 @@ multiline string"')
         result = Lexer.lex!(text)
 
         tokens = [
-          Token.new(TokenType::Null, nil)
+          Token.new(TokenType::Null, nil, 0, 0)
         ]
         expect(result.length).to eq 1
 

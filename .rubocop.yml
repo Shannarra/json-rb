@@ -17,6 +17,8 @@ Metrics/AbcSize:
   Max: 100
 Metrics/CyclomaticComplexity:
   Max: 100
+Metrics/ClassLength:
+  Max: 110
 Metrics/MethodLength:
   Max: 50
 Metrics/BlockLength:
@@ -25,3 +27,4 @@ Metrics/PerceivedComplexity:
   Max: 50
 Layout/LineLength:
   Max: 140
+

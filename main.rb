@@ -16,7 +16,7 @@ def main
             3
         ],
         {
-            "name": "John Doe",
+            "hello": "John Doe",
             "false": true,
             "true": false,
             "value": null
@@ -33,7 +33,25 @@ def main
   puts value
   puts value.dig('foo', 'data', 'weirdnum')
 
-  value = JRB.parse!(File.read('./tests/jrb/arrays_instead_of_objects.jrb'), config_file: 'config.json')
+  h = {
+    SYMBOLS: {
+      COMMA: '⸲',
+      COLON: '→',
+      LEFTBRACKET: '{',
+      RIGHTBRACKET: '}',
+      LEFTBRACE: '[',
+      RIGHTBRACE: ']',
+      QUOTE: 'single'
+    },
+    WHITESPACE: [' ', "\n", "\t"],
+    BOOLEAN: {
+      TRUE: 'да',
+      FALSE: 'не'
+    },
+    NULL: 'fuck'
+  }
+
+  value = JRB.parse!(File.read('./tests/jrb/arrays_instead_of_objects.jrb'), config: h)
   pp value
 end
 

@@ -60,7 +60,7 @@ class Parser
       unless key.is_a?(Token) && key.string_token?
         return with_matching_key_type(object) if key == @@config[:SYMBOLS][:RIGHTBRACE]
 
-        error! "Expected a string key in object, got \"#{key}\" at #{ip}"
+        error! "Expected a string key in object, got #{current.value_with_position}"
       end
 
       advance
